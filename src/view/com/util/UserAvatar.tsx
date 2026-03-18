@@ -101,7 +101,7 @@ let DefaultAvatar = ({
   shape?: 'square' | 'circle'
   size: number
 }): React.ReactNode => {
-  const finalShape = overrideShape ?? (type === 'user' ? 'circle' : 'square')
+  const finalShape = overrideShape ?? 'square'
 
   const aviStyle = useMemo(() => {
     if (finalShape === 'square') {
@@ -188,7 +188,6 @@ let DefaultAvatar = ({
       </Svg>
     )
   }
-  // TODO: shape=square
   return (
     <Svg
       testID="userAvatarFallback"
@@ -198,7 +197,11 @@ let DefaultAvatar = ({
       fill="none"
       stroke="none"
       style={aviStyle}>
-      <Circle cx="12" cy="12" r="12" fill="#0070ff" />
+      {finalShape === 'square' ? (
+        <Rect x="0" y="0" width="24" height="24" rx="3" fill="#0070ff" />
+      ) : (
+        <Circle cx="12" cy="12" r="12" fill="#0070ff" />
+      )}
       <Circle cx="12" cy="9.5" r="3.5" fill="#fff" />
       <Path
         strokeLinecap="round"
@@ -226,7 +229,7 @@ let UserAvatar = ({
   noBorder,
 }: UserAvatarProps): React.ReactNode => {
   const t = useTheme()
-  const finalShape = overrideShape ?? (type === 'user' ? 'circle' : 'square')
+  const finalShape = overrideShape ?? 'square'
 
   const aviStyle = useMemo(() => {
     let borderRadius
@@ -349,22 +352,13 @@ let EditableUserAvatar = ({
 
   const sheetWrapper = useSheetWrapper()
 
-  const circular = type !== 'algo' && type !== 'list'
-
   const aviStyle = useMemo(() => {
-    if (!circular) {
-      return {
-        width: size,
-        height: size,
-        borderRadius: size > 32 ? 8 : 3,
-      }
-    }
     return {
       width: size,
       height: size,
-      borderRadius: Math.floor(size / 2),
+      borderRadius: size > 32 ? 8 : 3,
     }
-  }, [circular, size])
+  }, [size])
 
   const onOpenCamera = useCallback(async () => {
     if (!(await requestCameraAccessIfNeeded())) {
@@ -401,7 +395,7 @@ let EditableUserAvatar = ({
           await compressIfNeeded(
             await openCropper({
               imageUri: item.path,
-              shape: circular ? 'circle' : 'rectangle',
+              shape: 'rectangle',
               aspectRatio: 1,
             }),
           ),
@@ -421,7 +415,6 @@ let EditableUserAvatar = ({
     requestPhotoAccessIfNeeded,
     sheetWrapper,
     editImageDialogControl,
-    circular,
   ])
 
   const onRemoveAvatar = useCallback(() => {
@@ -516,7 +509,7 @@ let EditableUserAvatar = ({
         image={rawImage}
         onChange={onChangeEditImage}
         aspectRatio={1}
-        circularCrop={circular}
+        circularCrop={false}
       />
     </>
   )
@@ -561,10 +554,7 @@ let PreviewableUserAvatar = ({
     />
   )
 
-  const linkStyle =
-    props.type !== 'algo' && props.type !== 'list'
-      ? a.rounded_full
-      : {borderRadius: props.size > 32 ? 8 : 3}
+  const linkStyle = {borderRadius: props.size > 32 ? 8 : 3}
 
   return (
     <ProfileHoverCard did={profile.did} disable={disableHoverCard}>
